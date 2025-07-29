@@ -8,6 +8,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  MenuItem,
   TextField,
 } from "@mui/material";
 import { useForm } from "react-hook-form";
@@ -16,6 +17,7 @@ import { RecipeSchema, ZRecipeSchema } from "@/utils/zod";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { toast } from "sonner";
 import { createRecipeThunk } from "@/redux/thunk/recipe.thunk";
+import { RecipeCategory } from "@/utils/enum";
 
 const AddRecipeDialog: React.FC<{ open: boolean; handleClose: () => void }> = ({
   open,
@@ -83,22 +85,40 @@ const AddRecipeDialog: React.FC<{ open: boolean; handleClose: () => void }> = ({
           <TextField
             required
             margin="dense"
+            id="category"
+            label="Category"
+            select
+            fullWidth
+            variant="standard"
+            defaultValue=""
+            {...register("category")}
+            error={!!errors.category}
+            helperText={errors.category?.message}
+          >
+            {Object.values(RecipeCategory).map((cat) => (
+              <MenuItem key={cat} value={cat}>
+                {cat}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            required
+            margin="dense"
             id="ingredients"
             label="Ingredients (comma separated)"
             fullWidth
             variant="standard"
             multiline
-            minRows={2}
             {...register("ingredients", {
               setValueAs: (v) =>
-                v
-                  .split(",")
-                  .map((i: string) => i.trim())
-                  .filter(Boolean),
+                typeof v === "string"
+                  ? v.split(",").map((i: string) => i.trim())
+                  : [],
             })}
             error={!!errors.ingredients}
             helperText={errors.ingredients?.message}
           />
+
           <TextField
             required
             margin="dense"
@@ -107,7 +127,6 @@ const AddRecipeDialog: React.FC<{ open: boolean; handleClose: () => void }> = ({
             fullWidth
             variant="standard"
             multiline
-            minRows={2}
             {...register("instructions")}
             error={!!errors.instructions}
             helperText={errors.instructions?.message}
