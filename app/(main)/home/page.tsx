@@ -6,31 +6,54 @@ import {
   getRecipeBySearchTermThunk,
 } from "@/redux/thunk/recipe.thunk";
 import {
+  Button,
   Container,
   Pagination,
   Paper,
+  Stack,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import StarOutlineIcon from "@mui/icons-material/StarOutline";
-import { useEffect, useState } from "react";
+import LinkIcon from "@mui/icons-material/Link";
+import { useEffect, useMemo, useState } from "react";
 import {
-  favouriteRecipesThunk,
-  getFavouriteRecipesAndRemoveThunk,
-} from "@/redux/thunk/user.thunk";
+  addFavoriteRecipeThunk,
+  getFavoritesByUserIdThunk,
+  removeFavoriteRecipeThunk,
+} from "@/redux/thunk/userFavorite.thunk";
 import { toast } from "sonner";
 import AddRecipeButton from "@/components/addRecipeButton";
+import { useRouter } from "next/navigation";
+import {
+  addFavoriteRecipeId,
+  removeFavoriteRecipeId,
+} from "@/redux/slice/favoriteRecipeId.slice";
+import FilterRecipeSidebar from "@/components/filterRecipeSidebar";
+import debounce from "lodash/debounce";
 
 const Home = () => {
+  const router = useRouter();
+
   const dispatch = useAppDispatch();
   const { recipes } = useAppSelector((state) => state.recipe);
   const { user } = useAppSelector((state) => state.auth);
+  const { favoriteRecipeIds } = useAppSelector((state) => state.userFavorite);
   // const userId = useAppSelector((state) => state.auth.user?.userId);
 
   const [page, setPage] = useState(1);
-  const [isfavorite, setIsFavorite] = useState(false);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [open, setOpen] = useState(false);
+
+  const accessToken = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("accessToken="))
+    ?.split("=")[1];
+
+  const toggleDrawer = (newOpen: boolean) => () => {
+    setOpen(newOpen);
+  };
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -39,16 +62,27 @@ const Home = () => {
     fetchRecipes();
   }, [dispatch, page]);
 
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        dispatch(getRecipeBySearchTermThunk(value));
+      }, 500),
+    [dispatch]
+  );
+
   useEffect(() => {
-    const fetchSearchTerm = async () => {
-      await dispatch(getRecipeBySearchTermThunk(searchTerm));
+    const fetchFavorites = async () => {
+      if (user?.userId) {
+        await dispatch(getFavoritesByUserIdThunk(user.userId));
+      }
     };
-    fetchSearchTerm();
-  }, [searchTerm]);
+    fetchFavorites();
+  }, [dispatch, user?.userId]);
 
   const handleAddToFav = async (recipeId: number) => {
+    dispatch(addFavoriteRecipeId({ recipeId }));
     const result = await dispatch(
-      favouriteRecipesThunk({
+      addFavoriteRecipeThunk({
         userId: user?.userId || 0,
         recipeId: recipeId,
       })
@@ -61,8 +95,9 @@ const Home = () => {
   };
 
   const handleRemoveFromFav = async (recipeId: number) => {
+    dispatch(removeFavoriteRecipeId({ recipeId }));
     const result = await dispatch(
-      getFavouriteRecipesAndRemoveThunk({
+      removeFavoriteRecipeThunk({
         userId: user?.userId || 0,
         recipeId: recipeId,
       })
@@ -76,12 +111,23 @@ const Home = () => {
 
   return (
     <Container>
-      <TextField
-        label="Search Recipes"
-        variant="outlined"
-        fullWidth
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
+      <Stack spacing={2} direction="row" alignItems="center" p={2}>
+        <TextField
+          label="Search Recipes"
+          variant="outlined"
+          fullWidth
+          onChange={(e) => debouncedSearch(e.target.value)}
+          margin="normal"
+        />
+        <Button
+          startIcon={<LinkIcon />}
+          variant="contained"
+          color="primary"
+          onClick={toggleDrawer(true)}
+        >
+          filter
+        </Button>
+      </Stack>
 
       {recipes.length > 0 ? (
         recipes.map((recipe) => {
@@ -89,26 +135,40 @@ const Home = () => {
             <Paper
               variant="outlined"
               key={recipe.recipeId}
-              style={{ margin: "10px", padding: "10px", position: "relative" }}
+              sx={{
+                margin: "10px",
+                padding: "10px",
+                position: "relative",
+                "&:hover": {
+                  cursor: "pointer",
+                  transform: "scale(1.02)",
+                  transition: "transform 0.2s ease-in-out",
+                },
+              }}
+              onClick={() => router.push(`/home/${recipe.recipeId}`)}
             >
-              {isfavorite ? (
-                <StarOutlineIcon
-                  color="primary"
-                  sx={{ position: "absolute", top: "10px", right: "10px" }}
-                  onClick={() => {
-                    handleRemoveFromFav(recipe.recipeId);
-                    setIsFavorite(false);
-                  }}
-                />
+              {favoriteRecipeIds.includes(recipe.recipeId) ? (
+                <Tooltip title="Remove from favorites">
+                  <StarOutlineIcon
+                    color="primary"
+                    sx={{ position: "absolute", top: "10px", right: "10px" }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveFromFav(recipe.recipeId);
+                    }}
+                  />
+                </Tooltip>
               ) : (
-                <StarOutlineIcon
-                  color="disabled"
-                  sx={{ position: "absolute", top: "10px", right: "10px" }}
-                  onClick={() => {
-                    handleAddToFav(recipe.recipeId);
-                    setIsFavorite(true);
-                  }}
-                />
+                <Tooltip title="Add to favorites">
+                  <StarOutlineIcon
+                    color="disabled"
+                    sx={{ position: "absolute", top: "10px", right: "10px" }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToFav(recipe.recipeId);
+                    }}
+                  />
+                </Tooltip>
               )}
               <Typography variant="h5">{recipe.title}</Typography>
               <Typography variant="body1">{recipe.description}</Typography>
@@ -123,14 +183,17 @@ const Home = () => {
           No recipes found.
         </Typography>
       )}
-      <AddRecipeButton />
+      {accessToken && <AddRecipeButton />}
       <Pagination
         count={10}
         variant="outlined"
         shape="rounded"
         page={page}
         onChange={(event, value) => setPage(value)}
+        sx={{ float: "right", marginTop: "20px" }}
       />
+
+      <FilterRecipeSidebar open={open} toggleDrawer={toggleDrawer} />
     </Container>
   );
 };

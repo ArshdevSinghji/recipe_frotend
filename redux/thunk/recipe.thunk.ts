@@ -2,6 +2,8 @@ import { axiosInstance } from "@/utils/axiosInstance";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { RecipePayloadInterface } from "../payload.interface";
 
+import qs from "qs";
+
 export const getAllRecipesThunk = createAsyncThunk(
   "getAllRecipesThunk",
   async (query: { limit: number; offset: number }, thunkAPI) => {
@@ -18,7 +20,7 @@ export const getAllRecipesThunk = createAsyncThunk(
 
 export const getRecipeByIdThunk = createAsyncThunk(
   "getRecipeByIdThunk",
-  async (recipeId: string, thunkAPI) => {
+  async (recipeId: number, thunkAPI) => {
     try {
       const accessToken = document.cookie
         .split("; ")
@@ -29,6 +31,30 @@ export const getRecipeByIdThunk = createAsyncThunk(
           Authorization: `Bearer ${accessToken}`,
         },
       });
+      return res.data;
+    } catch (err: any) {
+      return thunkAPI.rejectWithValue(err.response.data);
+    }
+  }
+);
+
+export const getRecipesByCategoryThunk = createAsyncThunk(
+  "getRecipesByCategoryThunk",
+  async (
+    params: { category: string[]; limit: number; offset: number },
+    thunkAPI
+  ) => {
+    try {
+      const res = await axiosInstance.get("recipe/category", {
+        params: {
+          category: params.category,
+          limit: params.limit,
+          offset: params.offset,
+        },
+        paramsSerializer: (params) =>
+          qs.stringify(params, { arrayFormat: "repeat" }),
+      });
+      console.log("Fetched recipes by category:", res.data);
       return res.data;
     } catch (err: any) {
       return thunkAPI.rejectWithValue(err.response.data);

@@ -13,23 +13,23 @@ import Tooltip from "@mui/material/Tooltip";
 import AdbIcon from "@mui/icons-material/Adb";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAppDispatch } from "@/redux/hook";
+import { logout } from "@/redux/slice/auth.slice";
 
 function Navbar() {
   const router = useRouter();
+
+  const dispatch = useAppDispatch();
+
   const accessToken = document.cookie
     .split("; ")
     .find((row) => row.startsWith("accessToken="))
     ?.split("=")[1];
+
   return (
     <AppBar position="static">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <Tooltip title="Go to Home">
-            <Link href={"/home"}>
-              <AdbIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
-            </Link>
-          </Tooltip>
-
           <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
             <IconButton
               size="large"
@@ -41,25 +41,6 @@ function Navbar() {
               <MenuIcon />
             </IconButton>
           </Box>
-          <AdbIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
-          <Typography
-            variant="h5"
-            noWrap
-            component="a"
-            href="#app-bar-with-responsive-menu"
-            sx={{
-              mr: 2,
-              display: { xs: "flex", md: "none" },
-              flexGrow: 1,
-              fontFamily: "monospace",
-              fontWeight: 700,
-              letterSpacing: ".3rem",
-              color: "inherit",
-              textDecoration: "none",
-            }}
-          >
-            LOGO
-          </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
             <Tooltip title={!accessToken ? "Login to access Favorites" : ""}>
               <span>
@@ -80,6 +61,7 @@ function Navbar() {
                   sx={{ color: "white" }}
                   onClick={() => {
                     document.cookie = "accessToken=; Max-Age=0; path=/;";
+                    dispatch(logout());
                     window.location.reload();
                   }}
                 >

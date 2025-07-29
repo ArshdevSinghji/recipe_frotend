@@ -21,7 +21,7 @@ export default function RootLayout({
       <body>
         <AppRouterCacheProvider>
           <StoreProvider>{children}</StoreProvider>
-          <Toaster />
+          <Toaster theme="dark" position="top-right" />
         </AppRouterCacheProvider>
       </body>
     </html>

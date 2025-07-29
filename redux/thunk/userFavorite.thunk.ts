@@ -6,13 +6,13 @@ const accessToken = document.cookie
   .find((row) => row.startsWith("accessToken="))
   ?.split("=")[1];
 
-export const favouriteRecipesThunk = createAsyncThunk(
-  "favouriteRecipesThunk",
+export const addFavoriteRecipeThunk = createAsyncThunk(
+  "addFavoriteRecipeThunk",
   async (params: { userId: number; recipeId: number }, thunkAPI) => {
     try {
-      console.log(accessToken);
       const res = await axiosInstance.post(
-        `user/${params.userId}/favorites/${params.recipeId}`,
+        `/favorites/recipe/${params.recipeId}/user/${params.userId}`,
+        {},
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -26,13 +26,11 @@ export const favouriteRecipesThunk = createAsyncThunk(
   }
 );
 
-export const getFavouriteRecipesThunk = createAsyncThunk(
-  "getFavouriteRecipesThunk",
+export const getFavoritesByUserIdThunk = createAsyncThunk(
+  "getFavoritesByUserIdThunk",
   async (userId: number, thunkAPI) => {
     try {
-      console.log(accessToken);
-
-      const res = await axiosInstance.get(`user/${userId}/favorites`, {
+      const res = await axiosInstance.get(`/favorites/user/${userId}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -44,14 +42,12 @@ export const getFavouriteRecipesThunk = createAsyncThunk(
   }
 );
 
-export const getFavouriteRecipesAndRemoveThunk = createAsyncThunk(
-  "getFavouriteRecipesAndRemoveThunk",
+export const removeFavoriteRecipeThunk = createAsyncThunk(
+  "removeFavoriteRecipeThunk",
   async (params: { userId: number; recipeId: number }, thunkAPI) => {
     try {
-      console.log(accessToken);
-
       const res = await axiosInstance.delete(
-        `user/${params.userId}/favorites/remove/${params.recipeId}`,
+        `/favorites/recipe/${params.recipeId}/user/${params.userId}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,

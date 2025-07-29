@@ -4,6 +4,7 @@ import {
   getAllRecipesThunk,
   getRecipeByIdThunk,
   getRecipeBySearchTermThunk,
+  getRecipesByCategoryThunk,
 } from "../thunk/recipe.thunk";
 
 export interface RecipeInterface {
@@ -72,6 +73,16 @@ const recipeSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(getRecipeBySearchTermThunk.pending, (state) => {
+        state.loading = true;
+      });
+    builder
+      .addCase(getRecipesByCategoryThunk.fulfilled, (state, action) => {
+        state.recipes = action.payload;
+      })
+      .addCase(getRecipesByCategoryThunk.rejected, (state, action) => {
+        state.error = action.payload;
+      })
+      .addCase(getRecipesByCategoryThunk.pending, (state) => {
         state.loading = true;
       });
   },
