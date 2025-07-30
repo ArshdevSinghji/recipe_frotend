@@ -1,7 +1,10 @@
 "use client";
 
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
-import { getRecipeByIdThunk } from "@/redux/thunk/recipe.thunk";
+import {
+  getRecipeByIdThunk,
+  getRecipesThunk,
+} from "@/redux/thunk/recipe.thunk";
 import {
   Box,
   Button,

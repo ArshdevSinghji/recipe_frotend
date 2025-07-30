@@ -10,7 +10,7 @@ import Checkbox from "@mui/material/Checkbox";
 import { RecipeCategory } from "@/utils/enum";
 import { Button, Divider, Typography } from "@mui/material";
 import { useAppDispatch } from "@/redux/hook";
-import { getRecipesByCategoryThunk } from "@/redux/thunk/recipe.thunk";
+import { getRecipesThunk } from "@/redux/thunk/recipe.thunk";
 
 const FilterRecipeSidebar: React.FC<{
   open: boolean;
@@ -28,9 +28,8 @@ const FilterRecipeSidebar: React.FC<{
     );
   };
   const handleApplyFilters = async () => {
-    console.log("Applying filters:", checkedCategories);
     await dispatch(
-      getRecipesByCategoryThunk({
+      getRecipesThunk({
         category: checkedCategories,
         limit: 10,
         offset: 0,

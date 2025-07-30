@@ -37,7 +37,7 @@ const Favorite = () => {
           <Paper
             variant="outlined"
             key={fav.favoriteId}
-            sx={{ padding: "20px", marginTop: "20px" }}
+            sx={{ padding: "20px", marginTop: "20px", position: "relative" }}
           >
             <Typography variant="h5">{fav.recipe.title}</Typography>
             <Typography variant="body1">{fav.recipe.description}</Typography>

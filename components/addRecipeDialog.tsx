@@ -51,6 +51,7 @@ const AddRecipeDialog: React.FC<{ open: boolean; handleClose: () => void }> = ({
       toast.error(`${result.payload.message}`);
     } else {
       toast.success("Successfully created recipe!");
+      handleClose();
     }
   };
 

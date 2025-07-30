@@ -4,29 +4,16 @@ import { RecipePayloadInterface } from "../payload.interface";
 
 import qs from "qs";
 
-export const getAllRecipesThunk = createAsyncThunk(
-  "getAllRecipesThunk",
-  async (query: { limit: number; offset: number }, thunkAPI) => {
-    try {
-      const res = await axiosInstance.get(
-        `recipe/all?limit=${query.limit}&offset=${query.offset}`
-      );
-      return res.data;
-    } catch (err: any) {
-      return thunkAPI.rejectWithValue(err.response.data);
-    }
-  }
-);
+const accessToken = document.cookie
+  .split("; ")
+  .find((row) => row.startsWith("accessToken="))
+  ?.split("=")[1];
 
 export const getRecipeByIdThunk = createAsyncThunk(
   "getRecipeByIdThunk",
   async (recipeId: number, thunkAPI) => {
     try {
-      const accessToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("accessToken="))
-        ?.split("=")[1];
-      const res = await axiosInstance.get(`recipe/recipeId/${recipeId}`, {
+      const res = await axiosInstance.get(`recipe/${recipeId}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -38,23 +25,28 @@ export const getRecipeByIdThunk = createAsyncThunk(
   }
 );
 
-export const getRecipesByCategoryThunk = createAsyncThunk(
-  "getRecipesByCategoryThunk",
+export const getRecipesThunk = createAsyncThunk(
+  "getRecipesThunk",
   async (
-    params: { category: string[]; limit: number; offset: number },
+    query: {
+      category?: string[];
+      searchTerm?: string;
+      limit: number;
+      offset: number;
+    },
     thunkAPI
   ) => {
     try {
-      const res = await axiosInstance.get("recipe/category", {
+      const res = await axiosInstance.get("recipe", {
         params: {
-          category: params.category,
-          limit: params.limit,
-          offset: params.offset,
+          category: query.category,
+          searchTerm: query.searchTerm,
+          limit: query.limit,
+          offset: query.offset,
         },
         paramsSerializer: (params) =>
           qs.stringify(params, { arrayFormat: "repeat" }),
       });
-      console.log("Fetched recipes by category:", res.data);
       return res.data;
     } catch (err: any) {
       return thunkAPI.rejectWithValue(err.response.data);
@@ -75,20 +67,6 @@ export const createRecipeThunk = createAsyncThunk(
           Authorization: `Bearer ${accessToken}`,
         },
       });
-      return res.data;
-    } catch (err: any) {
-      return thunkAPI.rejectWithValue(err.response.data);
-    }
-  }
-);
-
-export const getRecipeBySearchTermThunk = createAsyncThunk(
-  "getRecipeBySearchTermThunk",
-  async (searchTerm: string, thunkAPI) => {
-    try {
-      const res = await axiosInstance.get(
-        `recipe/search?searchTerm=${searchTerm}`
-      );
       return res.data;
     } catch (err: any) {
       return thunkAPI.rejectWithValue(err.response.data);

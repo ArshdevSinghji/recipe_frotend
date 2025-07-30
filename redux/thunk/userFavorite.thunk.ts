@@ -12,7 +12,6 @@ export const addFavoriteRecipeThunk = createAsyncThunk(
     try {
       const res = await axiosInstance.post(
         `/favorites/recipe/${params.recipeId}/user/${params.userId}`,
-        {},
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,

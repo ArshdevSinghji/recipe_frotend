@@ -5,12 +5,11 @@ import userFavoriteReducer from "./slice/userFavorite.slice";
 
 import storage from "redux-persist/lib/storage";
 import persistReducer from "redux-persist/es/persistReducer";
-import addFavoriteRecipeIdReducer from "./slice/favoriteRecipeId.slice";
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["addFavoriteRecipeId", "auth"],
+  whitelist: ["auth"],
   blacklist: ["recipe", "userFavorite"],
 };
 
@@ -18,7 +17,6 @@ const rootReducer = combineReducers({
   recipe: recipeReducer,
   auth: authReducer,
   userFavorite: userFavoriteReducer,
-  addFavoriteRecipeId: addFavoriteRecipeIdReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

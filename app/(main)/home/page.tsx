@@ -1,10 +1,7 @@
 "use client";
 
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
-import {
-  getAllRecipesThunk,
-  getRecipeBySearchTermThunk,
-} from "@/redux/thunk/recipe.thunk";
+import { getRecipesThunk } from "@/redux/thunk/recipe.thunk";
 import {
   Button,
   Container,
@@ -23,13 +20,11 @@ import {
   getFavoritesByUserIdThunk,
   removeFavoriteRecipeThunk,
 } from "@/redux/thunk/userFavorite.thunk";
+
 import { toast } from "sonner";
-import AddRecipeButton from "@/components/addRecipeButton";
 import { useRouter } from "next/navigation";
-import {
-  addFavoriteRecipeId,
-  removeFavoriteRecipeId,
-} from "@/redux/slice/favoriteRecipeId.slice";
+
+import AddRecipeButton from "@/components/addRecipeButton";
 import FilterRecipeSidebar from "@/components/filterRecipeSidebar";
 import debounce from "lodash/debounce";
 
@@ -40,7 +35,6 @@ const Home = () => {
   const { recipes } = useAppSelector((state) => state.recipe);
   const { user } = useAppSelector((state) => state.auth);
   const { favoriteRecipeIds } = useAppSelector((state) => state.userFavorite);
-  // const userId = useAppSelector((state) => state.auth.user?.userId);
 
   const [page, setPage] = useState(1);
 
@@ -57,15 +51,17 @@ const Home = () => {
 
   useEffect(() => {
     const fetchRecipes = async () => {
-      await dispatch(getAllRecipesThunk({ limit: 10, offset: page - 1 }));
+      await dispatch(getRecipesThunk({ limit: 10, offset: page - 1 }));
     };
     fetchRecipes();
   }, [dispatch, page]);
 
   const debouncedSearch = useMemo(
     () =>
-      debounce((value: string) => {
-        dispatch(getRecipeBySearchTermThunk(value));
+      debounce(async (value: string) => {
+        await dispatch(
+          getRecipesThunk({ searchTerm: value, limit: 10, offset: page - 1 })
+        );
       }, 500),
     [dispatch]
   );
@@ -80,14 +76,16 @@ const Home = () => {
   }, [dispatch, user?.userId]);
 
   const handleAddToFav = async (recipeId: number) => {
-    dispatch(addFavoriteRecipeId({ recipeId }));
     const result = await dispatch(
       addFavoriteRecipeThunk({
         userId: user?.userId || 0,
         recipeId: recipeId,
       })
     );
-    if (result.payload.statusCode === 400) {
+    if (result.payload.statusCode === "401") {
+      toast.error(`${result.payload.message}`);
+      return;
+    } else if (result.payload.statusCode === 400) {
       toast.error(`${result.payload.message}`);
     } else {
       toast.success("Successfully added to favorites!");
@@ -95,14 +93,16 @@ const Home = () => {
   };
 
   const handleRemoveFromFav = async (recipeId: number) => {
-    dispatch(removeFavoriteRecipeId({ recipeId }));
     const result = await dispatch(
       removeFavoriteRecipeThunk({
         userId: user?.userId || 0,
         recipeId: recipeId,
       })
     );
-    if (result.payload.statusCode === 400) {
+    if (result.payload.statusCode === "401") {
+      toast.error(`${result.payload.message}`);
+      return;
+    } else if (result.payload.statusCode === 400) {
       toast.error(`${result.payload.message}`);
     } else {
       toast.success("Successfully removed from favorites!");

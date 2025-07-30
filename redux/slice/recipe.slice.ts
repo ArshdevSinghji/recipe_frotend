@@ -1,11 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import {
-  createRecipeThunk,
-  getAllRecipesThunk,
-  getRecipeByIdThunk,
-  getRecipeBySearchTermThunk,
-  getRecipesByCategoryThunk,
-} from "../thunk/recipe.thunk";
+import { getRecipeByIdThunk, getRecipesThunk } from "../thunk/recipe.thunk";
 
 export interface RecipeInterface {
   recipeId: number;
@@ -36,54 +30,27 @@ const recipeSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(getAllRecipesThunk.fulfilled, (state, action) => {
+      .addCase(getRecipesThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getRecipesThunk.fulfilled, (state, action) => {
+        state.loading = false;
         state.recipes = action.payload;
       })
-      .addCase(getAllRecipesThunk.rejected, (state, action) => {
-        state.error = action.payload;
-      })
-      .addCase(getAllRecipesThunk.pending, (state) => {
-        state.loading = true;
+      .addCase(getRecipesThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
       });
     builder
       .addCase(getRecipeByIdThunk.fulfilled, (state, action) => {
         state.selectedRecipe = action.payload;
       })
-      .addCase(getRecipeByIdThunk.rejected, (state, action) => {
-        state.error = action.payload;
-      })
       .addCase(getRecipeByIdThunk.pending, (state) => {
         state.loading = true;
-      });
-    builder
-      .addCase(createRecipeThunk.fulfilled, (state, action) => {
-        state.recipes.push(action.payload);
       })
-      .addCase(createRecipeThunk.rejected, (state, action) => {
-        state.error = action.payload;
-      })
-      .addCase(createRecipeThunk.pending, (state) => {
-        state.loading = true;
-      });
-    builder
-      .addCase(getRecipeBySearchTermThunk.fulfilled, (state, action) => {
-        state.recipes = action.payload;
-      })
-      .addCase(getRecipeBySearchTermThunk.rejected, (state, action) => {
-        state.error = action.payload;
-      })
-      .addCase(getRecipeBySearchTermThunk.pending, (state) => {
-        state.loading = true;
-      });
-    builder
-      .addCase(getRecipesByCategoryThunk.fulfilled, (state, action) => {
-        state.recipes = action.payload;
-      })
-      .addCase(getRecipesByCategoryThunk.rejected, (state, action) => {
-        state.error = action.payload;
-      })
-      .addCase(getRecipesByCategoryThunk.pending, (state) => {
-        state.loading = true;
+      .addCase(getRecipeByIdThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
       });
   },
 });
